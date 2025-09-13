@@ -1,305 +1,272 @@
-# Insight Invoicing - Residential Complex Installment Management System
+# Insight Invoicing System
 
-A complete .NET Core 8 solution implementing Clean Architecture and Domain-Driven Design (DDD) principles for managing residential complex contracts, installments, and payment tracking with full RBAC (Role-Based Access Control).
+A comprehensive invoicing and contract management system built with .NET 9, designed for managing apartment rental contracts with installment-based payments.
 
-## 🏗️ Architecture Overview
+## 🏗️ Architecture
 
-The solution follows Clean Architecture principles with the following layers:
+This project follows **Clean Architecture** principles with the following layers:
 
-- **Domain Layer** (`Insight.Invoicing.Domain`): Core business logic, entities, value objects, domain events, and repository interfaces
-- **Application Layer** (`Insight.Invoicing.Application`): CQRS implementation with MediatR, DTOs, specifications, and pipeline behaviors
-- **Infrastructure Layer** (`Insight.Invoicing.Infrastructure`): Data persistence with EF Core, external services (MinIO, email), and background services
-- **API Layer** (`Insight.Invoicing.API`): ASP.NET Core Web API with controllers, authentication, and middleware
-- **Shared Kernel** (`Insight.Invoicing.Shared`): Common utilities and base classes
+- **Domain Layer** (`Insight.Invoicing.Domain`) - Core business entities and rules
+- **Application Layer** (`Insight.Invoicing.Application`) - Use cases, commands, queries, and DTOs
+- **Infrastructure Layer** (`Insight.Invoicing.Infrastructure`) - Data access, external services, and implementations
+- **API Layer** (`Insight.Invoicing.API`) - Web API controllers and middleware
+- **Shared Layer** (`Insight.Invoicing.Shared`) - Common utilities and shared components
 
-## 🌟 Key Features
+## 🚀 Features
 
-### Core Business Features
+### Core Functionality
 
-- **Contract Management**: Complete lifecycle from draft to approval/rejection
-- **Installment Calculation**: Automated calculation with grace periods and penalty handling
-- **Payment Tracking**: Upload and validate payment receipts with file storage
-- **User Management**: Tenant and Administrator roles with permission-based authorization
+- **Contract Management**: Create, submit, approve, reject, and manage rental contracts
+- **Installment System**: Automated installment calculation and tracking
+- **Payment Receipts**: Upload and manage payment receipts with file storage
+- **User Management**: Multi-role system (Tenants, Administrators)
+- **Real-time Notifications**: SignalR-based notifications for contract status changes
 
 ### Technical Features
 
-- **Clean Architecture**: Separation of concerns with dependency inversion
-- **Domain-Driven Design**: Rich domain models with business rules enforcement
-- **CQRS Pattern**: Command and Query segregation using MediatR
-- **Event-Driven Architecture**: Domain events for cross-cutting concerns
-- **Background Services**: Automated overdue checking and penalty calculation
-- **File Storage**: MinIO integration for payment receipt storage
-- **Comprehensive Logging**: Structured logging with Serilog
-- **Global Error Handling**: Structured error responses with ProblemDetails
-- **API Documentation**: Swagger/OpenAPI with JWT authentication
+- **JWT Authentication**: Secure token-based authentication
+- **CQRS Pattern**: Command Query Responsibility Segregation with MediatR
+- **Event-Driven Architecture**: Domain events and integration events
+- **Background Jobs**: Hangfire integration for scheduled tasks
+- **Message Bus**: MassTransit with RabbitMQ support
+- **File Storage**: MinIO integration for document storage
+- **Caching**: Redis support for performance optimization
+- **API Documentation**: Swagger/OpenAPI integration
 
 ## 🛠️ Technology Stack
 
-- **.NET Core 8.0**
-- **Entity Framework Core 8.0** (SQL Server)
-- **ASP.NET Core Identity** with JWT authentication
-- **MediatR** for CQRS implementation
-- **FluentValidation** for input validation
-- **MinIO** for file storage
-- **Quartz.NET** for background jobs
-- **Serilog** for structured logging
-- **Swagger/OpenAPI** for API documentation
+- **.NET 9** - Latest .NET framework
+- **PostgreSQL** - Primary database
+- **Entity Framework Core** - ORM
+- **MediatR** - CQRS implementation
+- **SignalR** - Real-time communication
+- **JWT Bearer** - Authentication
+- **Hangfire** - Background job processing
+- **MassTransit** - Message bus
+- **MinIO** - Object storage
+- **Redis** - Caching and SignalR backplane
+- **RabbitMQ** - Message broker
+- **Docker** - Containerization
 
-## 🚀 Getting Started
+## 📋 Prerequisites
 
-### Prerequisites
+- .NET 9 SDK
+- Docker and Docker Compose
+- PostgreSQL (or use Docker)
+- Visual Studio 2022 or VS Code
 
-1. **.NET 8.0 SDK** or later
-2. **SQL Server** (LocalDB for development)
-3. **MinIO Server** (for file storage)
-4. **Visual Studio 2022** or **VS Code** (recommended)
+## 🚀 Quick Start
 
-### Setup Instructions
+### Using Docker Compose (Recommended)
 
 1. **Clone the repository**
 
    ```bash
    git clone <repository-url>
-   cd insight-invoicing
+   cd NewNasTask
    ```
 
-2. **Configure Database Connection**
-
-   - Update the connection string in `appsettings.json` if needed
-   - The default uses SQL Server LocalDB
-
-3. **Setup MinIO (for file storage)**
+2. **Start all services**
 
    ```bash
-   # Using Docker
-   docker run -p 9000:9000 -p 9001:9001 \
-     -e "MINIO_ROOT_USER=minioadmin" \
-     -e "MINIO_ROOT_PASSWORD=minioadmin" \
-     quay.io/minio/minio server /data --console-address ":9001"
+   docker-compose up -d
    ```
 
-4. **Restore NuGet packages**
+   This will start:
+
+   - PostgreSQL database (port 5433)
+   - MinIO object storage (ports 9000, 9002)
+   - Redis cache (port 6379)
+   - RabbitMQ message broker (ports 5672, 15672)
+   - pgAdmin (port 5050)
+   - API application (port 8080)
+
+3. **Access the application**
+   - API: http://localhost:8080
+   - Swagger UI: http://localhost:8080/swagger
+   - MinIO Console: http://localhost:9002
+   - pgAdmin: http://localhost:5050
+   - RabbitMQ Management: http://localhost:15672
+
+### Manual Setup
+
+1. **Install dependencies**
 
    ```bash
    dotnet restore
    ```
 
-5. **Run the application**
+2. **Configure database**
+
+   - Update connection strings in `appsettings.json`
+   - Run migrations:
 
    ```bash
-   cd src/Insight.Invoicing.API
-   dotnet run
+   dotnet ef database update --project src/Insight.Invoicing.Infrastructure --startup-project src/Insight.Invoicing.API
    ```
 
-6. **Access the API**
-   - API: `https://localhost:5001` or `http://localhost:5000`
-   - Swagger UI: `https://localhost:5001` (served at root)
+3. **Run the application**
+   ```bash
+   dotnet run --project src/Insight.Invoicing.API
+   ```
 
-### Default Login Credentials
+## 🔧 Configuration
 
-The system creates a default administrator account on startup:
+### Environment Variables
 
-- **Email**: `admin@insight-invoicing.com`
-- **Password**: `Admin@123`
+| Variable                               | Description                     | Default                                                                                        |
+| -------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `ConnectionStrings__DefaultConnection` | PostgreSQL connection string    | `Host=localhost;Port=5433;Database=InsightInvoicingDb;Username=postgres;Password=postgres123;` |
+| `JwtSettings__SecretKey`               | JWT signing key                 | Required                                                                                       |
+| `MinIO__Endpoint`                      | MinIO server endpoint           | `localhost:9000`                                                                               |
+| `UseRedis`                             | Enable Redis caching            | `false`                                                                                        |
+| `UseRabbitMQ`                          | Enable RabbitMQ message bus     | `false`                                                                                        |
+| `UseHangfire`                          | Enable Hangfire background jobs | `false`                                                                                        |
 
-## 📊 Domain Model
+### Service Configuration
 
-### Core Aggregates
+The application supports optional services that can be enabled via configuration:
 
-#### Contract Aggregate
+- **Redis**: Set `UseRedis: true` for caching and SignalR backplane
+- **RabbitMQ**: Set `UseRabbitMQ: true` for message bus functionality
+- **Hangfire**: Set `UseHangfire: true` for background job processing
 
-- **Contract** (Root): Lease agreement with tenant
-- **Installment**: Payment schedule for the contract
-
-#### PaymentReceipt Aggregate
-
-- **PaymentReceipt** (Root): Uploaded payment proof with validation workflow
-
-#### User Aggregate
-
-- **User** (Root): System users (Tenants and Administrators)
-
-### Key Business Rules
-
-1. **Contract Lifecycle**: Draft → Submitted → Approved/Rejected → Closed
-2. **Installment Calculation**: Automatic generation with banker's rounding
-3. **Grace Periods**: 5-day grace period before penalties apply
-4. **Penalty Calculation**: 2% per month on outstanding amounts
-5. **Payment Validation**: Administrator approval required for payment receipts
-
-## 🔐 Security & Authorization
+## 📚 API Endpoints
 
 ### Authentication
 
-- JWT-based authentication with refresh token support
-- Password requirements: 8+ characters, uppercase, lowercase, digit
-- Account lockout after 5 failed attempts
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `POST /api/auth/change-password` - Change password
 
-### Authorization
+### Contracts
 
-- Role-based access control (Tenant, Administrator)
-- Permission-based authorization for fine-grained access control
-- Protected endpoints with appropriate role restrictions
-
-### Permissions
-
-- **Contracts**: View, Create, Edit, Approve, Reject, Delete
-- **Installments**: View, Edit
-- **Payment Receipts**: View, Upload, Validate
-- **Users**: View, Create, Edit, Delete
-- **Reports**: View, Generate
-- **Admin**: Dashboard, Settings
-
-## 📁 Project Structure
-
-```
-src/
-├── Insight.Invoicing.Domain/           # Domain layer
-│   ├── Entities/                       # Domain entities and aggregates
-│   ├── ValueObjects/                   # Value objects
-│   ├── Events/                         # Domain events
-│   ├── Enums/                          # Domain enumerations
-│   ├── Exceptions/                     # Domain exceptions
-│   ├── Repositories/                   # Repository interfaces
-│   └── Services/                       # Domain service interfaces
-├── Insight.Invoicing.Application/      # Application layer
-│   ├── Commands/                       # CQRS commands
-│   ├── Queries/                        # CQRS queries
-│   ├── Handlers/                       # Command and query handlers
-│   ├── DTOs/                           # Data transfer objects
-│   ├── Specifications/                 # Specification pattern
-│   ├── Behaviors/                      # MediatR pipeline behaviors
-│   └── Validators/                     # FluentValidation validators
-├── Insight.Invoicing.Infrastructure/   # Infrastructure layer
-│   ├── Persistence/                    # EF Core configurations and repositories
-│   ├── Services/                       # External service implementations
-│   ├── EventHandlers/                  # Domain event handlers
-│   └── BackgroundServices/             # Background tasks
-├── Insight.Invoicing.API/              # Presentation layer
-│   ├── Controllers/                    # API controllers
-│   ├── Middleware/                     # Custom middleware
-│   ├── Authorization/                  # Authorization policies
-│   └── Program.cs                      # Application startup
-└── Insight.Invoicing.Shared/           # Shared kernel
-    └── Common/                         # Base classes and interfaces
-```
-
-## 🔄 API Endpoints
-
-### Authentication
-
-- `POST /api/auth/login` - User authentication
-- `POST /api/auth/refresh` - Refresh access token
-
-### Contracts (Tenants)
-
-- `GET /api/contracts` - Get user's contracts
-- `POST /api/contracts` - Create new contract
-- `POST /api/contracts/{id}/submit` - Submit contract for approval
-
-### Contracts (Administrators)
-
-- `GET /api/contracts/admin/pending` - Get pending contracts
-- `POST /api/contracts/admin/{id}/approve` - Approve contract
-- `POST /api/contracts/admin/{id}/reject` - Reject contract
-
-### Installments
-
-- `GET /api/installments/contracts/{contractId}` - Get contract installments
-- `GET /api/installments/overdue` - Get overdue installments (Admin)
+- `GET /api/contracts/{id}` - Get contract by ID
+- `GET /api/contracts` - Get user contracts (Tenant)
+- `POST /api/contracts` - Create new contract (Tenant)
+- `POST /api/contracts/{id}/submit` - Submit contract for approval (Tenant)
+- `GET /api/contracts/admin/pending` - Get pending contracts (Admin)
+- `POST /api/contracts/admin/{id}/approve` - Approve contract (Admin)
+- `POST /api/contracts/admin/{id}/reject` - Reject contract (Admin)
 
 ### Payment Receipts
 
-- `POST /api/paymentreceipts/upload` - Upload payment receipt (Tenant)
-- `POST /api/paymentreceipts/{id}/validate` - Validate receipt (Admin)
-- `GET /api/paymentreceipts/pending` - Get pending receipts (Admin)
+- `POST /api/payment-receipts/upload` - Upload payment receipt
+- `GET /api/payment-receipts` - Get payment receipts
 
-### Reports (Administrators)
+### Installments
 
-- `GET /api/admin/dashboard` - Dashboard statistics
-- `GET /api/admin/reports/overdue` - Overdue installments report
-- `GET /api/admin/reports/revenue` - Revenue report
+- `GET /api/installments` - Get installments
+- `POST /api/installments/{id}/mark-paid` - Mark installment as paid
+
+## 🏢 Domain Model
+
+### Core Entities
+
+- **User**: System users (Tenants, Administrators)
+- **Contract**: Rental contracts with installment details
+- **Installment**: Individual payment installments
+- **PaymentReceipt**: Payment documentation and receipts
+- **Notification**: System notifications
+
+### Value Objects
+
+- **Money**: Currency and amount handling
+- **Address**: User address information
+- **Email**: Email validation and handling
+
+## 🔄 Event-Driven Architecture
+
+The system uses domain events and integration events for loose coupling:
+
+### Domain Events
+
+- `ContractSubmittedEvent`
+- `ContractApprovedEvent`
+- `ContractRejectedEvent`
+- `PaymentReceiptUploadedEvent`
+
+### Integration Events
+
+- Contract status changes
+- Payment notifications
+- System alerts
 
 ## 🧪 Testing
-
-The solution includes comprehensive test coverage:
 
 ```bash
 # Run all tests
 dotnet test
 
-# Run with coverage
-dotnet test --collect:"XPlat Code Coverage"
+# Run specific test project
+dotnet test src/Insight.Invoicing.Tests
 ```
 
-## 📈 Performance Considerations
+## 📦 Deployment
 
-- **Database Indexing**: Strategic indexes on frequently queried fields
-- **Pagination**: All list endpoints support pagination
-- **Caching**: Redis integration ready for caching strategies
-- **Background Processing**: Async processing for heavy operations
-- **File Storage**: MinIO for scalable file storage
+### Docker Production
 
-## 🚀 Deployment
+1. **Build the image**
 
-### Docker Support
+   ```bash
+   docker build -t insight-invoicing .
+   ```
 
-```dockerfile
-# Example Dockerfile for API
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-EXPOSE 80 443
+2. **Run with production settings**
+   ```bash
+   docker run -p 8080:8080 \
+     -e ConnectionStrings__DefaultConnection="your-connection-string" \
+     -e JwtSettings__SecretKey="your-secret-key" \
+     insight-invoicing
+   ```
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY ["src/Insight.Invoicing.API/Insight.Invoicing.API.csproj", "src/Insight.Invoicing.API/"]
-RUN dotnet restore "src/Insight.Invoicing.API/Insight.Invoicing.API.csproj"
-COPY . .
-WORKDIR "/src/src/Insight.Invoicing.API"
-RUN dotnet build "Insight.Invoicing.API.csproj" -c Release -o /app/build
+### Environment-Specific Configuration
 
-FROM build AS publish
-RUN dotnet publish "Insight.Invoicing.API.csproj" -c Release -o /app/publish
+- **Development**: Uses mock services, in-memory message bus
+- **Production**: Configure real services (SendGrid, Twilio, Stripe)
 
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Insight.Invoicing.API.dll"]
-```
+## 🔒 Security
 
-### Environment Variables
+- JWT-based authentication
+- Role-based authorization
+- Password hashing with ASP.NET Core Identity
+- CORS configuration for frontend integration
+- Input validation and sanitization
 
-- `ASPNETCORE_ENVIRONMENT`: Development/Production
-- `ConnectionStrings__DefaultConnection`: Database connection
-- `JwtSettings__SecretKey`: JWT signing key
-- `MinIO__Endpoint`: MinIO server endpoint
+## 📊 Monitoring and Logging
+
+- **Serilog** for structured logging
+- **Hangfire Dashboard** for background job monitoring
+- **Health checks** for service monitoring
+- **Exception handling middleware** for error management
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📞 Support
+## 🆘 Support
 
 For support and questions:
 
 - Create an issue in the repository
-- Email: support@insight-invoicing.com
+- Contact the development team
+- Check the documentation in the `/docs` folder
 
-## 🎯 Future Enhancements
+## 🔄 Version History
 
-- [ ] Mobile application support
-- [ ] Advanced reporting with charts
-- [ ] Email and SMS notifications
-- [ ] Multi-tenant support
-- [ ] Integration with payment gateways
-- [ ] Document generation (contracts, invoices)
-- [ ] Audit logging and compliance features
+- **v1.0.0** - Initial release with core contract management features
+- **v1.1.0** - Added payment receipt management
+- **v1.2.0** - Implemented real-time notifications
+- **v1.3.0** - Added background job processing
 
+---
+
+**Built with ❤️ using .NET 9 and Clean Architecture principles**
